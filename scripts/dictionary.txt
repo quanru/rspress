@@ -194,3 +194,7 @@ Zovn
 Gitea
 opencode
 привет
+blockedbyclient
+doubao
+quanru
+autoselection
