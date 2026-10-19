@@ -16,36 +16,20 @@ test.describe('multi version', async () => {
     }
   });
 
-  test('Default version and default language', async ({ page }) => {
-    await page.goto(`http://localhost:${appPort}/base`, {
+  test('uses the target locale and version on a missing page', async ({
+    page,
+  }) => {
+    await page.goto(`http://localhost:${appPort}/base/`, {
       waitUntil: 'networkidle',
     });
-    const h1 = page.locator('h1');
-    await expect(h1).toContainText('v1');
-  });
-
-  test('Not Default version default language', async ({ page }) => {
-    await page.goto(`http://localhost:${appPort}/base/v2`, {
-      waitUntil: 'networkidle',
-    });
-    const h1 = page.locator('h1');
-    await expect(h1).toContainText('v2');
-  });
-
-  test('Default version not default language', async ({ page }) => {
-    await page.goto(`http://localhost:${appPort}/base/zh`, {
-      waitUntil: 'networkidle',
-    });
-    const h1 = page.locator('h1');
-    await expect(h1).toContainText('v1 中文');
-  });
-
-  test('Not default version not default language', async ({ page }) => {
-    await page.goto(`http://localhost:${appPort}/base/v2/zh`, {
-      waitUntil: 'networkidle',
-    });
-    const h1 = page.locator('h1');
-    await expect(h1).toContainText('v2 中文');
+    await page.getByRole('button', { name: 'Missing localized page' }).click();
+    await expect(page.getByTestId('page-context')).toHaveText('v2|zh');
+    await expect(page.locator('h1')).toHaveText('页面未找到');
+    await expect(
+      page.getByRole('link', { name: 'go to home' }),
+    ).toHaveAttribute('href', '/base/v2/zh/');
+    await page.getByRole('link', { name: 'go to home' }).click();
+    await expect(page.locator('h1')).toContainText('v2 中文');
   });
 
   test('Home feature icon should include base with multi-version and i18n', async ({

@@ -1,4 +1,6 @@
 # Custom Dictionary Words
+esbuild
+webmcp
 afdocs
 algoliasearch
 alinks
@@ -194,3 +196,7 @@ Zovn
 Gitea
 opencode
 привет
+blockedbyclient
+doubao
+quanru
+autoselection

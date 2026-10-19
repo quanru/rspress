@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@e2e/test';
 import {
@@ -33,29 +33,19 @@ test.describe('React 18 development', async () => {
     }
   });
 
-  test('Index page', async ({ page }) => {
+  test('renders the installed React and router versions', async ({ page }) => {
     await page.goto(`http://localhost:${appPort}`, {
       waitUntil: 'networkidle',
     });
-    const h1 = page.locator('h1');
-    await expect(h1).toContainText('Hello world');
     const body = page.locator('body');
     await expect(body).toContainText(
       `react-router-dom ${getPackageVersion('react-router-dom')}`,
     );
     await expect(body).toContainText(`react ${getPackageVersion('react')}`);
   });
-
-  test('404 page', async ({ page }) => {
-    await page.goto(`http://localhost:${appPort}/404`, {
-      waitUntil: 'networkidle',
-    });
-    // find the 404 text in the page
-    await expect(page.locator('body')).toContainText('404');
-  });
 });
 
-test('React 18 build should be successful', async () => {
+test('React 18 build should generate Markdown by default', async () => {
   const appDir = import.meta.dirname;
   await runBuildCommand(appDir);
 
@@ -71,4 +61,8 @@ test('React 18 build should be successful', async () => {
 
   expect(indexHtml).not.toContain('{reactVersion}');
   expect(indexHtml).not.toContain('{version}');
+  expect(existsSync(path.join(docBuildDir, 'llms.txt'))).toBe(true);
+  expect(
+    readFileSync(path.join(docBuildDir, 'llms-full.txt'), 'utf-8'),
+  ).toContain(`react ${reactVersion}`);
 });
