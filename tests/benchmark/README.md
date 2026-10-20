@@ -5,6 +5,10 @@ Three sequential fresh Ubuntu 24.04 runners each execute the original determinis
 suite, retained deterministic suite, and all 153 Midscene cases. Test retries are
 disabled in both frameworks. Tests and model settings are not tuned between rounds.
 All outcomes, including setup failures and unexecuted tests, must be reported.
+The deterministic suite retains its CI setting of two workers; Midscene retains
+one concurrent case and a 40-cycle planning limit. Disabling case retries does not
+disable planning inside an aiAct call. The normal deterministic workflow allows
+three retries; this experiment disables them to expose first-attempt failures.
 
 The workflow replaces the existing dispatchable workflow only on this experiment
 branch. It does not change the upstream PR, publish Pages, or delete existing reports.
