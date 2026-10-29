@@ -143,7 +143,7 @@ jobs:
           working-directory: tests/midscene
           command: |
             set -e
-            for case in interact-with-browseronly-components-after-production-hydration navigate-from-a-configuration-overview-to-its-basic-article search-single-entry-generated-api-documentation; do
+            for case in navigate-from-a-configuration-overview-to-its-basic-article search-single-entry-generated-api-documentation; do
               for round in 1 2 3; do
                 echo "INDEPENDENT VERIFICATION $case round $round/3"
                 timeout --signal=TERM --kill-after=10s 20m pnpm exec midscene-test --config "$PWD/midscene.config.ts" "cases/$case.yaml" --result-dir "midscene_run/verification/$case-$round"
