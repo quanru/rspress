@@ -51,7 +51,7 @@ jobs:
       # Request and output-format retries share this delay; case retries stay off.
       MIDSCENE_MODEL_TIMEOUT: '120000'
       MIDSCENE_MODEL_RETRY_COUNT: '4'
-      MIDSCENE_MODEL_RETRY_INTERVAL: '2000'
+      MIDSCENE_MODEL_RETRY_INTERVAL: '65000'
       # The model endpoint is reachable over IPv4; avoid family-race timeouts.
       NODE_OPTIONS: '--dns-result-order=ipv4first --no-network-family-autoselection'
     steps:
@@ -141,7 +141,14 @@ jobs:
           MIDSCENE_RETRY: '0'
         with:
           working-directory: tests/midscene
-          command: timeout --signal=TERM --kill-after=10s 220m pnpm exec midscene-test
+          command: |
+            set -e
+            for case in interact-with-browseronly-components-after-production-hydration navigate-from-a-configuration-overview-to-its-basic-article search-single-entry-generated-api-documentation; do
+              for round in 1 2 3; do
+                echo "INDEPENDENT VERIFICATION $case round $round/3"
+                timeout --signal=TERM --kill-after=10s 20m pnpm exec midscene-test --config "$PWD/midscene.config.ts" "cases/$case.yaml" --result-dir "midscene_run/verification/$case-$round"
+              done
+            done
           artifact-name: midscene-results
           retention-days: '14'
           publish-pages: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_pages }}
