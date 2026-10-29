@@ -1,13 +1,16 @@
 packages:
+  - tests/midscene
   - scripts/config
   - packages/*
   - e2e/**
   - website
   - '!**/compiled/**'
-  - '!**/tests/**'
+  - '!packages/**/tests/**'
+  - '!e2e/**/tests/**'
   - '!packages/create-rspress/template-*'
 
 allowBuilds:
+  esbuild: true
   sharp: true
 
 hoistPattern: []
@@ -21,6 +24,8 @@ minimumReleaseAgeExclude:
   - '@rsbuild/*'
   - '@rslib/*'
   - rsbuild-plugin-dts
+  # Reviewed loading strategy option: rstackjs/rsbuild-plugin-google-analytics#82
+  - rsbuild-plugin-google-analytics@1.1.0
   - '@rspress/*'
   - '@rstest/*'
   - '@rsdoctor/*'

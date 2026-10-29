@@ -1,4 +1,6 @@
 # Custom Dictionary Words
+esbuild
+webmcp
 afdocs
 algoliasearch
 alinks
@@ -30,6 +32,7 @@ componentized
 componentp
 consolas
 contentful
+cookieless
 corejs
 corepack
 craco
@@ -43,6 +46,7 @@ domcontentloaded
 envinfo
 estree
 facti
+figtree
 flac
 flexbox
 flexbugs
@@ -72,6 +76,7 @@ jsesc
 jsxs
 juejin
 katex
+kazamori
 Kinsta
 koppers
 Lamperouge
@@ -124,12 +129,14 @@ preflights
 prefresh
 preprocessors
 Println
+privatus
 Publint
 pxtorem
 Qrcode
 rebranded
 rehype
 renderable
+resizer
 resvg
 rsbuild
 rsdoctor
@@ -143,6 +150,7 @@ rstack
 rstackjs
 rstest
 selfsign
+seshuk
 shiki
 shikijs
 sirv
@@ -194,3 +202,11 @@ Zovn
 Gitea
 opencode
 привет
+blockedbyclient
+doubao
+quanru
+autoselection
+extname
+typedoc
+shadcn
+Octocat

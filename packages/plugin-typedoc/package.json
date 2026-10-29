@@ -1,6 +1,6 @@
 {
   "name": "@rspress/plugin-typedoc",
-  "version": "2.0.23",
+  "version": "2.1.0-beta.2",
   "description": "A plugin for rspress to integrate typedoc",
   "bugs": "https://github.com/web-infra-dev/rspress/issues",
   "repository": {
@@ -27,20 +27,20 @@
   },
   "dependencies": {
     "typedoc": "0.28.20",
-    "typedoc-plugin-markdown": "4.13.1"
+    "typedoc-plugin-markdown": "4.14.1"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.59.4",
     "@rspress/config": "workspace:*",
     "@types/node": "^22.8.1",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.7",
-    "react": "^19.2.8",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "react": "^19.3.0",
     "rsbuild-plugin-publint": "^1.0.0",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "@rspress/core": "workspace:^2.0.10"
+    "@rspress/core": "workspace:^2.1.0-beta.2"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"

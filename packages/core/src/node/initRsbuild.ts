@@ -48,13 +48,14 @@ import type { RouteService } from './route/RouteService';
 import { RouteChunkAssetsPlugin } from './route/routeChunkAssets';
 import { globalStylesVMPlugin } from './runtimeModule/globalStyles';
 import { globalUIComponentsVMPlugin } from './runtimeModule/globalUIComponents';
-import { i18nVMPlugin } from './runtimeModule/i18n';
+import { rsbuildPluginI18n } from './runtimeModule/i18n/rsbuildPlugin';
 import { rsbuildPluginDocVM } from './runtimeModule/pageData/rsbuildPlugin';
 import { routeListVMPlugin } from './runtimeModule/routeList';
 import { searchHookVMPlugin } from './runtimeModule/searchHooks';
 import { siteDataVMPlugin } from './runtimeModule/siteData/rsbuildPlugin';
 import { socialLinksVMPlugin } from './runtimeModule/socialLinks';
 import type { FactoryContext } from './runtimeModule/types';
+import { rsbuildPluginSitemap } from './sitemap';
 import { rsbuildPluginCSR } from './ssg/rsbuildPluginCSR';
 import { rsbuildPluginSSG } from './ssg/rsbuildPluginSSG';
 import { rsbuildPluginSSGMD } from './ssg-md/rsbuildPluginSSGMD';
@@ -164,12 +165,17 @@ async function createInternalBuildConfig(
   return {
     plugins: [
       ...(isPluginIncluded(config, PLUGIN_REACT_NAME) ? [] : [pluginReact()]),
+      // --- Virtual module plugins: begin ---
+      // i18n text and development cache invalidation.
+      rsbuildPluginI18n({ pluginDriver }),
+      // Page data and search index generation.
       rsbuildPluginDocVM({
         config,
         pluginDriver,
         routeService,
         userDocRoot,
       }),
+      // Shared runtime modules and modules contributed by Rspress plugins.
       pluginVirtualModule({
         tempDir: '.rspress/runtime',
         virtualModules: {
@@ -177,10 +183,6 @@ async function createInternalBuildConfig(
            * Load social links in compile time for treeshaking
            */
           ...socialLinksVMPlugin(context),
-          /**
-           * Load i18n.json to runtime
-           */
-          ...i18nVMPlugin(context),
           /**
            * Generate global components from config and plugins
            */
@@ -207,6 +209,8 @@ async function createInternalBuildConfig(
           ...siteDataVMPlugin(context),
         },
       }),
+      // --- Virtual module plugins: end ---
+      config.sitemap ? rsbuildPluginSitemap({ config, routeService }) : null,
       enableSSG && config.ssg
         ? rsbuildPluginSSG({
             routeService,
@@ -315,8 +319,19 @@ async function createInternalBuildConfig(
       ],
       include: [PACKAGE_ROOT],
       define: {
+        'import.meta.env.ENABLE_WEBMCP': JSON.stringify(
+          config.webMcp !== false,
+        ),
+        'import.meta.env.WEBMCP_EXPOSED_TO': JSON.stringify(
+          typeof config.webMcp === 'object'
+            ? (config.webMcp.exposedTo ?? [])
+            : [],
+        ),
         'import.meta.env.ENABLE_LLMS_UI': JSON.stringify(enableLlmsUI),
         'import.meta.env.ENABLE_LLMS_HINT': JSON.stringify(enableLlmsHint),
+        'import.meta.env.ENABLE_SSG_MD': JSON.stringify(
+          Boolean(enableSSG && config.llms),
+        ),
       },
     },
     performance: {
@@ -325,6 +340,7 @@ async function createInternalBuildConfig(
       // mergeRsbuildConfig. Environment-level defaults are harder to override
       // from the user's shared builderConfig.
       printFileSize: {
+        detail: false,
         compressed: true,
       },
       ...(process.env.RSPRESS_PERSISTENT_CACHE !== 'false'
@@ -474,8 +490,11 @@ async function createInternalBuildConfig(
         },
         source: {
           entry: {
+            // Markdown-only rendering still emits CSR HTML without content to hydrate.
             index:
-              enableSSG && isProduction() ? SSR_CLIENT_ENTRY : CSR_CLIENT_ENTRY,
+              enableSSG && config.ssg && isProduction()
+                ? SSR_CLIENT_ENTRY
+                : CSR_CLIENT_ENTRY,
           },
           define: {
             // import.meta.env.SSR is built in Rsbuild v2.0.7
@@ -557,6 +576,9 @@ async function createInternalBuildConfig(
                   'process.env.__SSR__': JSON.stringify(true),
                   'process.env.__SSR_MD__': JSON.stringify(true),
                   'import.meta.env.SSG_MD': JSON.stringify(true),
+                  'import.meta.env.ENABLE_LLMS_HINT': JSON.stringify(
+                    isLlmsHintEnabled(config, enableSSG, 'markdown'),
+                  ),
                 },
               },
               output: {

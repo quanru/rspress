@@ -1,6 +1,6 @@
 {
   "name": "@rspress/plugin-api-docgen",
-  "version": "2.0.23",
+  "version": "2.1.0-beta.2",
   "description": "A plugin for rspress to generate api doc.",
   "bugs": "https://github.com/web-infra-dev/rspress/issues",
   "repository": {
@@ -40,17 +40,17 @@
     "@types/hast": "^3.0.5",
     "@types/mdast": "^4.0.4",
     "@types/node": "^22.8.1",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.7",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.4",
     "rsbuild-plugin-publint": "^1.0.0",
     "rsbuild-plugin-virtual-module": "0.4.5",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "@rspress/core": "workspace:^2.0.10",
+    "@rspress/core": "workspace:^2.1.0-beta.2",
     "typescript": "^6.0.3"
   },
   "peerDependenciesMeta": {
