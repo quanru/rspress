@@ -1,0 +1,102 @@
+name: Screen timing investigation
+on:
+  push:
+    branches: [experiment/screen-timing-ci]
+permissions:
+  contents: read
+jobs:
+  compare:
+    if: github.repository == 'quanru/rspress'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      # pnpm must exist before setup-node resolves the pnpm store for its
+      # cache; without a version it reads the root `packageManager` field.
+      - name: Enable pnpm
+        uses: pnpm/action-setup@a8198c4bff370c8506180b035930dea56dbd5288 # v5
+
+      - name: Activate Node.js 24 and pnpm
+        id: node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      # Capture source inputs before install/build creates generated files.
+      - name: Fingerprint workspace build inputs
+        id: build-inputs
+        env:
+          FINGERPRINT: ${{ hashFiles('*', 'packages/**', 'scripts/**', '!**/node_modules/**', '!**/dist/**', '!packages/create-rspress/template-basic-theme/**', '!packages/create-rspress/template-i18n-theme/**') }}
+        run: |
+          test -n "$FINGERPRINT"
+          echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
+
+      - name: Install workspace dependencies without developer hooks
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm rebuild sharp esbuild
+
+      - name: Restore workspace build
+        id: workspace-build
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            packages/*/dist
+            packages/create-rspress/template-basic-theme
+            packages/create-rspress/template-i18n-theme
+          key: midscene-build-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.node-version }}-${{ steps.build-inputs.outputs.fingerprint }}
+
+      - name: Build checked-out packages on cache miss
+        if: steps.workspace-build.outputs.cache-hit != 'true'
+        run: pnpm run build
+
+      - name: Save workspace build
+        if: steps.workspace-build.outputs.cache-hit != 'true'
+        uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            packages/*/dist
+            packages/create-rspress/template-basic-theme
+            packages/create-rspress/template-i18n-theme
+          key: ${{ steps.workspace-build.outputs.cache-primary-key }}
+
+      - name: Install Chromium for Midscene
+        working-directory: tests/midscene
+        run: pnpm exec playwright install --with-deps chromium
+
+
+      - name: Record runner and sample resources
+        run: |
+          mkdir -p timing-results
+          lscpu > timing-results/cpu.txt
+          free -m > timing-results/memory.txt
+          vmstat -w 1 > timing-results/vmstat.txt &
+          echo $! > timing-results/monitor.pid
+          echo '| Concurrency | Concurrent builds | Samples | Click median/P95 ms | Screenshot median/P95 ms | Screenshot max ms | Frame differences |' >> "$GITHUB_STEP_SUMMARY"
+          echo '|---|---|---|---|---|---|---|---|' >> "$GITHUB_STEP_SUMMARY"
+      - name: Compare without background builds
+        env:
+          COUNTS: '1,10,40,40,10,1'
+          ROUNDS: '5'
+          OUTPUT_DIR: timing-results/baseline
+        run: node tests/midscene/screenTiming.mjs
+      - name: Compare with ten concurrent fixture builds
+        env:
+          COUNTS: '1,10,40,40,10,1'
+          ROUNDS: '5'
+          BUILD_LOAD: '10'
+          OUTPUT_DIR: timing-results/build-load
+        run: node tests/midscene/screenTiming.mjs
+      - name: Stop resource sampler
+        if: always()
+        run: test ! -f timing-results/monitor.pid || kill "$(cat timing-results/monitor.pid)" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screen-timing-evidence
+          path: timing-results
+          retention-days: 14
