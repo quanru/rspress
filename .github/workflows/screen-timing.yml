@@ -80,13 +80,13 @@ jobs:
           echo '|---|---|---|---|---|---|---|---|' >> "$GITHUB_STEP_SUMMARY"
       - name: Compare without background builds
         env:
-          COUNTS: '1,10,40,40,10,1'
+          COUNTS: '40,80,120,120,80,40'
           ROUNDS: '5'
           OUTPUT_DIR: timing-results/baseline
         run: node tests/midscene/screenTiming.mjs
       - name: Compare with ten concurrent fixture builds
         env:
-          COUNTS: '1,10,40,40,10,1'
+          COUNTS: '40,80,120,120,80,40'
           ROUNDS: '5'
           BUILD_LOAD: '10'
           OUTPUT_DIR: timing-results/build-load
